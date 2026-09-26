@@ -16,7 +16,7 @@
   }
   *{box-sizing:border-box;}
   html{scroll-padding-top:env(safe-area-inset-top,0px);}
-  body{margin:0; background:var(--bg); color:var(--cream); font-family:'Inter',sans-serif; padding-bottom:130px;}
+  body{margin:0; background:var(--bg); color:var(--cream); font-family:'Inter',sans-serif; padding-bottom:140px;}
   h1,h2,.price,.qty-count{font-family:'Baloo 2',sans-serif;}
 
   .topbar{
@@ -35,10 +35,12 @@
 
   .taco{
     background:var(--card); border:1px solid var(--line); border-radius:14px;
-    padding:14px; margin-bottom:12px; display:flex; gap:14px; align-items:center;
+    padding:14px; margin-bottom:14px; display:flex; flex-direction:column; gap:12px;
   }
+  .taco-main{display:flex; gap:14px; align-items:center;}
+  
   .photo-slot{
-    width:88px; height:88px; flex-shrink:0; border-radius:12px;
+    width:84px; height:84px; flex-shrink:0; border-radius:12px;
     border:2px dashed var(--teal); position:relative; overflow:hidden;
   }
   .photo-slot img{width:100%; height:100%; object-fit:cover; display:block;}
@@ -51,7 +53,7 @@
   .taco-info{flex:1; min-width:0;}
   .taco-info h2{font-size:1.1rem; margin:0 0 3px; font-weight:700;}
   .taco-info p{margin:0; color:var(--muted); font-size:.85rem; line-height:1.35;}
-  .price{color:var(--magenta); font-weight:700; font-size:.92rem; margin-top:5px; display:block;}
+  .price{color:var(--magenta); font-weight:700; font-size:.95rem; margin-top:4px; display:block;}
 
   .stepper{display:flex; align-items:center; gap:9px; flex-shrink:0;}
   .stepper button{
@@ -61,6 +63,22 @@
   }
   .stepper button:active{background:var(--chile); border-color:var(--chile);}
   .qty-count{min-width:16px; text-align:center; font-weight:700;}
+
+  /* Opciones de personalización */
+  .taco-options{
+    background:var(--card2); border-radius:10px; padding:10px 12px;
+    border:1px solid var(--line); display:flex; flex-direction:column; gap:8px; font-size:.85rem;
+  }
+  .options-row{display:flex; align-items:center; gap:14px; flex-wrap:wrap;}
+  .options-row label{display:flex; align-items:center; gap:6px; cursor:pointer; user-select:none;}
+  .options-row input[type="checkbox"]{accent-color:var(--teal); width:16px; height:16px;}
+  
+  .combo-select-wrap{margin-top:2px; display:flex; flex-direction:column; gap:4px;}
+  .combo-select-wrap select{
+    width:100%; padding:8px 10px; border-radius:8px; border:1px solid var(--line);
+    background:var(--card); color:var(--cream); font-family:inherit; font-size:.85rem;
+  }
+  .combo-select-wrap select:focus{outline:2px solid var(--teal);}
 
   #pedido{
     background:var(--card); border:1px solid var(--line); border-radius:14px;
@@ -134,72 +152,116 @@
 <script>
 const WHATSAPP_NUMBER = "529831023719";
 
+const BASE_PRICE = 45;
+const COMBO_PRICE = 75;
+
 const tacos = [
-  {id:1, name:"Tortita de Camarón con Nopales", desc:"Tortita de camarón guisada con nopales", price:19, image:"TORTITA_DE_CAMARON_CON_NOPALES-1.jpeg"},
-  {id:2, name:"Coliflor Capeada", desc:"Coliflor capeada en huevo, con arroz y frijol", price:16, image:"COLIFLOR_CAPEADA-2.jpeg"},
-  {id:3, name:"Omelette de Papa con Espinaca", desc:"Omelette relleno de papa y espinaca, con arroz", price:16, image:"Omelette_de_papa_con_espinaca-3.jpeg"},
-  {id:4, name:"Champiñón con Queso", desc:"Champiñones en salsa cremosa con queso derretido", price:17, image:"Champiñon_con_queso-4.jpeg"},
-  {id:5, name:"Coliflor Capeada", desc:"Coliflor capeada en huevo, con arroz y frijol", price:16, image:"Coliflor_capeada-5.jpeg"},
-  {id:6, name:"Chicharrón en Salsa Verde", desc:"Chicharrón guisado en salsa verde con arroz y frijol", price:19, image:"Chicharrón_verde-6.jpeg"},
-  {id:7, name:"Mole Rojo", desc:"Carne en mole rojo tradicional, con arroz y frijol", price:20, image:"Mole_rojo-7.jpeg"},
-  {id:8, name:"Soufflé de Papa", desc:"Papa en soufflé cremoso, con arroz y frijol", price:16, image:"SOUFFLE_DE_PAPA-8.jpeg"},
-  {id:9, name:"Longaniza en Salsa Verde", desc:"Longaniza guisada en salsa verde con arroz y frijol", price:18, image:"Longaniza_en_salsa_verde-9.jpeg"},
-  {id:10, name:"Empanizado", desc:"Milanesa empanizada, con arroz y frijol", price:20, image:"Empanizado-10.jpeg"},
-  {id:11, name:"Puerco con Verdolagas", desc:"Carne de puerco guisada con verdolagas en salsa verde", price:19, image:"Carne_de_puerco_con_Verdolaga-11.jpeg"},
-  {id:12, name:"Patita Capeada", desc:"Patita de cerdo capeada en huevo, con arroz y frijol", price:18, image:"Patita_capeada-12.jpeg"},
-  {id:13, name:"Chile Relleno", desc:"Chile relleno capeado, con arroz y frijol", price:19, image:"Chile_relleno-13.jpeg"},
-  {id:14, name:"Chicharrón Prensado", desc:"Chicharrón prensado guisado en salsa roja", price:19, image:"Chicharrón_prensado-14.jpeg"},
-  {id:15, name:"Mole Verde", desc:"Carne en mole verde tradicional, con arroz y frijol", price:20, image:"Mole_verde-15.jpeg"},
-  {id:16, name:"Bistec en Chile Pasilla", desc:"Bistec de res guisado en chile pasilla", price:21, image:"BISTEC_EN_CHILE_PASILLA-16.jpeg"},
-  {id:17, name:"Bistec a la Mexicana", desc:"Bistec de res guisado con jitomate, cebolla y chile", price:21, image:"BISTEC_A_LA_MEXICANA-17.jpeg"},
-  {id:18, name:"Pollo a la Crema", desc:"Pollo guisado en salsa cremosa", price:19, image:"POLLO_A_LA_CREMA-18.jpeg"},
-  {id:19, name:"Picadillo", desc:"Carne molida guisada con verduras", price:18, image:"PICADILLO-19.jpeg"},
-  {id:20, name:"Rajas con Crema", desc:"Rajas poblanas en salsa cremosa", price:17, image:"RAJAS_CON_CREMA-20.jpeg"},
-  {id:21, name:"Tinga de Res", desc:"Res deshebrada guisada en salsa de jitomate y chipotle", price:19, image:"TINGA_DE_RES-21.jpeg"},
-  {id:22, name:"Tortita de Res en Salsa Verde", desc:"Tortita de res guisada en salsa verde", price:19, image:"TORTITA_DE_RES_EN_SALSA_VERDE-22.jpeg"},
-  {id:23, name:"Costilla con Nopales", desc:"Costilla de cerdo guisada con nopales en salsa verde", price:22, image:"COSTILLA_CON_NOPALES-23.jpeg"},
-  {id:24, name:"Papa con Chorizo", desc:"Papa guisada con chorizo", price:17, image:"PAPA_CON_CHORIZO-24.jpeg"},
-  {id:25, name:"Guisado por definir", desc:"Aún nos falta el nombre y la foto de este guisado", price:18, image:""}
+  {id:1, name:"Tortita de Camarón con Nopales", desc:"Tortita de camarón guisada con nopales", image:"TORTITA_DE_CAMARON_CON_NOPALES-1.jpeg"},
+  {id:2, name:"Coliflor Capeada", desc:"Coliflor capeada en huevo", image:"COLIFLOR_CAPEADA-2.jpeg"},
+  {id:3, name:"Omelette de Papa con Espinaca", desc:"Omelette relleno de papa y espinaca", image:"Omelette_de_papa_con_espinaca-3.jpeg"},
+  {id:4, name:"Champiñón con Queso", desc:"Champiñones en salsa cremosa con queso derretido", image:"Champiñon_con_queso-4.jpeg"},
+  {id:5, name:"Coliflor Capeada", desc:"Coliflor capeada en huevo", image:"Coliflor_capeada-5.jpeg"},
+  {id:6, name:"Chicharrón en Salsa Verde", desc:"Chicharrón guisado en salsa verde", image:"Chicharrón_verde-6.jpeg"},
+  {id:7, name:"Mole Rojo", desc:"Carne en mole rojo tradicional", image:"Mole_rojo-7.jpeg"},
+  {id:8, name:"Soufflé de Papa", desc:"Papa en soufflé cremoso", image:"Soufle_de_papa-8.jpeg"},
+  {id:9, name:"Longaniza en Salsa Verde", desc:"Longaniza guisada en salsa verde", image:"Longaniza_en_salsa_verde-9.jpeg"},
+  {id:10, name:"Empanizado", desc:"Milanesa empanizada", image:"Empanizado-10.jpeg"},
+  {id:11, name:"Puerco con Verdolagas", desc:"Carne de puerco guisada con verdolagas en salsa verde", image:"Carne_de_puerco_con_Verdolaga-11.jpeg"},
+  {id:12, name:"Patita Capeada", desc:"Patita de cerdo capeada en huevo", image:"Patita_capeada-12.jpeg"},
+  {id:13, name:"Chile Relleno", desc:"Chile relleno capeado", image:"Chile_relleno-13.jpeg"},
+  {id:14, name:"Chicharrón Prensado", desc:"Chicharrón prensado guisado en salsa roja", image:"Chicharrón_prensado-14.jpeg"},
+  {id:15, name:"Mole Verde", desc:"Carne en mole verde tradicional", image:"Mole_verde-15.jpeg"},
+  {id:16, name:"Bistec en Chile Pasilla", desc:"Bistec de res guisado en chile pasilla", image:"BISTEC_EN_CHILE_PASILLA-16.jpeg"},
+  {id:17, name:"Bistec a la Mexicana", desc:"Bistec de res guisado con jitomate, cebolla y chile", image:"BISTEC_A_LA_MEXICANA-17.jpeg"},
+  {id:18, name:"Pollo a la Crema", desc:"Pollo guisado en salsa cremosa", image:"POLLO_A_LA_CREMA-18.jpeg"},
+  {id:19, name:"Picadillo", desc:"Carne molida guisada con verduras", image:"PICADILLO-19.jpeg"},
+  {id:20, name:"Rajas con Crema", desc:"Rajas poblanas en salsa cremosa", image:"RAJAS_CON_CREMA-20.jpeg"},
+  {id:21, name:"Tinga de Res", desc:"Res deshebrada guisada en salsa de jitomate y chipotle", image:"TINGA_DE_RES-21.jpeg"},
+  {id:22, name:"Tortita de Res en Salsa Verde", desc:"Tortita de res guisada en salsa verde", image:"TORTITA_DE_RES_EN_SALSA_VERDE-22.jpeg"},
+  {id:23, name:"Costilla con Nopales", desc:"Costilla de cerdo guisada con nopales en salsa verde", image:"COSTILLA_CON_NOPALES-23.jpeg"},
+  {id:24, name:"Papa con Chorizo", desc:"Papa guisada con chorizo", image:"PAPA_CON_CHORIZO-24.jpeg"}
 ];
 
-const qty = {};
-tacos.forEach(t => qty[t.id] = 0);
+const state = {};
+tacos.forEach(t => {
+  state[t.id] = {
+    qty: 0,
+    arroz: true,
+    frijol: true,
+    isCombo: false,
+    secondGuisado: tacos.find(other => other.id !== t.id)?.name || ""
+  };
+});
+
 const menuEl = document.getElementById('menu');
 const fmt = n => '$' + n.toLocaleString('es-MX');
 
 function render(){
   menuEl.innerHTML = tacos.map(t => {
     const hasImg = t.image && t.image.trim() !== "";
+    const st = state[t.id];
+    const itemPrice = st.isCombo ? COMBO_PRICE : BASE_PRICE;
+
+    const otherOptions = tacos
+      .filter(o => o.id !== t.id)
+      .map(o => `<option value="${o.name}" ${st.secondGuisado === o.name ? 'selected' : ''}>${o.name}</option>`)
+      .join('');
+
     return `
-      <div class="taco">
-        <div class="photo-slot">
-          ${hasImg ? `<img src="${t.image}" alt="${t.name}" onerror="this.style.display='none';">` : ''}
-          <div class="photo-fallback">
-            <span class="icon">🌮</span>
-            <span>FOTO</span>
+      <div class="taco" id="taco-card-${t.id}">
+        <div class="taco-main">
+          <div class="photo-slot">
+            ${hasImg ? `<img src="${t.image}" alt="${t.name}" onerror="this.style.display='none';">` : ''}
+            <div class="photo-fallback">
+              <span class="icon">🌮</span>
+              <span>FOTO</span>
+            </div>
+          </div>
+          <div class="taco-info">
+            <h2>${t.name}</h2>
+            <p>${t.desc}</p>
+            <span class="price" id="price-${t.id}">${fmt(itemPrice)} ${st.isCombo ? '(Combinado)' : ''}</span>
+          </div>
+          <div class="stepper">
+            <button aria-label="Quitar" data-id="${t.id}" data-action="minus">–</button>
+            <span class="qty-count" id="qty-${t.id}">${st.qty}</span>
+            <button aria-label="Agregar" data-id="${t.id}" data-action="plus">+</button>
           </div>
         </div>
-        <div class="taco-info">
-          <h2>${t.name}</h2>
-          <p>${t.desc}</p>
-          <span class="price">${fmt(t.price)}</span>
-        </div>
-        <div class="stepper">
-          <button aria-label="Quitar" data-id="${t.id}" data-action="minus">–</button>
-          <span class="qty-count" id="qty-${t.id}">${qty[t.id]}</span>
-          <button aria-label="Agregar" data-id="${t.id}" data-action="plus">+</button>
+
+        <div class="taco-options">
+          <div class="options-row">
+            <label><input type="checkbox" data-id="${t.id}" data-opt="arroz" ${st.arroz ? 'checked' : ''}> Arroz</label>
+            <label><input type="checkbox" data-id="${t.id}" data-opt="frijol" ${st.frijol ? 'checked' : ''}> Frijol</label>
+            <label><input type="checkbox" data-id="${t.id}" data-opt="combo" ${st.isCombo ? 'checked' : ''}> Combinar (+ $30)</label>
+          </div>
+
+          <div class="combo-select-wrap" id="combo-wrap-${t.id}" style="display: ${st.isCombo ? 'flex' : 'none'};">
+            <label style="color:var(--muted); font-size:.78rem;">Segundo guisado:</label>
+            <select data-id="${t.id}" data-opt="secondSelect">
+              ${otherOptions}
+            </select>
+          </div>
         </div>
       </div>
     `;
   }).join('');
 }
+
 render();
 
 function updateSummary(){
   let count = 0, total = 0;
-  tacos.forEach(t => { count += qty[t.id]; total += qty[t.id]*t.price; });
+  tacos.forEach(t => {
+    const st = state[t.id];
+    count += st.qty;
+    const price = st.isCombo ? COMBO_PRICE : BASE_PRICE;
+    total += st.qty * price;
+  });
+
   document.getElementById('itemsLabel').textContent = count === 1 ? '1 taco' : `${count} tacos`;
   document.getElementById('totalLabel').textContent = fmt(total);
+
   const nombre = document.getElementById('nombre').value.trim();
   const btn = document.getElementById('orderBtn');
   const hint = document.getElementById('hintText');
@@ -212,9 +274,30 @@ menuEl.addEventListener('click', e => {
   const btn = e.target.closest('button[data-id]');
   if(!btn) return;
   const id = Number(btn.dataset.id);
-  if(btn.dataset.action === 'plus') qty[id]++;
-  else qty[id] = Math.max(0, qty[id]-1);
-  document.getElementById(`qty-${id}`).textContent = qty[id];
+  if(btn.dataset.action === 'plus') state[id].qty++;
+  else state[id].qty = Math.max(0, state[id].qty - 1);
+  document.getElementById(`qty-${id}`).textContent = state[id].qty;
+  updateSummary();
+});
+
+menuEl.addEventListener('change', e => {
+  const target = e.target;
+  const id = Number(target.dataset.id);
+  if(!id || !state[id]) return;
+
+  const opt = target.dataset.opt;
+  if(opt === 'arroz') state[id].arroz = target.checked;
+  if(opt === 'frijol') state[id].frijol = target.checked;
+  if(opt === 'combo') {
+    state[id].isCombo = target.checked;
+    document.getElementById(`combo-wrap-${id}`).style.display = target.checked ? 'flex' : 'none';
+    const priceEl = document.getElementById(`price-${id}`);
+    const itemPrice = target.checked ? COMBO_PRICE : BASE_PRICE;
+    priceEl.textContent = `${fmt(itemPrice)} ${target.checked ? '(Combinado)' : ''}`;
+  }
+  if(opt === 'secondSelect') {
+    state[id].secondGuisado = target.value;
+  }
   updateSummary();
 });
 
@@ -223,12 +306,28 @@ document.getElementById('nombre').addEventListener('input', updateSummary);
 document.getElementById('orderBtn').addEventListener('click', () => {
   const nombre = document.getElementById('nombre').value.trim();
   let total = 0;
-  const lineas = tacos.filter(t => qty[t.id] > 0).map(t => {
-    const sub = t.price * qty[t.id];
-    total += sub;
-    return `${qty[t.id]}x Taco de ${t.name} - ${fmt(sub)}`;
+
+  const lineas = tacos.filter(t => state[t.id].qty > 0).map(t => {
+    const st = state[t.id];
+    const itemPrice = st.isCombo ? COMBO_PRICE : BASE_PRICE;
+    const subtotal = itemPrice * st.qty;
+    total += subtotal;
+
+    let guisadoTexto = t.name;
+    if(st.isCombo && st.secondGuisado) {
+      guisadoTexto += ` + ${st.secondGuisado}`;
+    }
+
+    const comps = [];
+    if(st.arroz) comps.push("Arroz");
+    if(st.frijol) comps.push("Frijol");
+    const compTexto = comps.length > 0 ? ` (Con ${comps.join(" y ")})` : " (Sin arroz ni frijol)";
+
+    const tacoLabel = st.qty === 1 ? 'taco' : 'tacos';
+    return `• ${st.qty} ${tacoLabel} de ${guisadoTexto}${compTexto} - ${fmt(subtotal)}`;
   });
-  const mensaje = `Hola, soy ${nombre}.\nQuiero pedir:\n${lineas.join('\n')}\n\nTotal: ${fmt(total)}`;
+
+  const mensaje = `*Pedido de:* ${nombre}\n\n*Detalle del pedido:*\n${lineas.join('\n')}\n\n*Total a pagar:* ${fmt(total)}`;
   window.open(`https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(mensaje)}`, '_blank');
 });
 
