@@ -33,6 +33,11 @@
 
   main{max-width:640px; margin:0 auto; padding:20px 16px;}
 
+  .section-title{
+    font-size:1.3rem; color:var(--teal); margin:20px 0 12px;
+    border-bottom:2px solid var(--line); padding-bottom:6px;
+  }
+
   .taco{
     background:var(--card); border:1px solid var(--line); border-radius:14px;
     padding:14px; margin-bottom:14px; display:flex; flex-direction:column; gap:12px;
@@ -129,7 +134,11 @@
 </div>
 
 <main>
+  <h2 class="section-title">🌮 Tacos de Guisado</h2>
   <div id="menu"></div>
+
+  <h2 class="section-title">🥤 Bebidas</h2>
+  <div id="bebidas-menu"></div>
 
   <div id="pedido">
     <h2>Tu pedido</h2>
@@ -141,16 +150,16 @@
 <div class="bar">
   <div class="bar-inner">
     <div class="bar-total">
-      <span id="itemsLabel">0 tacos</span>
+      <span id="itemsLabel">0 productos</span>
       <strong id="totalLabel">$0</strong>
     </div>
     <button class="order-btn" id="orderBtn" disabled>Hacer Pedido</button>
   </div>
-  <p class="hint" id="hintText">Agrega al menos un taco y escribe tu nombre</p>
+  <p class="hint" id="hintText">Agrega al menos un producto y escribe tu nombre</p>
 </div>
 
 <script>
-const WHATSAPP_NUMBER = "529831023719";
+const WHATSAPP_NUMBER = "529831012379";
 
 const BASE_PRICE = 45;
 const COMBO_PRICE = 75;
@@ -182,6 +191,17 @@ const tacos = [
   {id:24, name:"Papa con Chorizo", desc:"Papa guisada con chorizo", image:"PAPA_CON_CHORIZO-24.jpeg"}
 ];
 
+const bebidas = [
+  {id:"b1", name:"Agua de Jamaica (1 Litro)", price:45, desc:"Agua fresca natural de 1 Litro"},
+  {id:"b2", name:"Agua de Limón con Chía (1 Litro)", price:45, desc:"Agua fresca natural de 1 Litro"},
+  {id:"b3", name:"Coca Cola Original", price:30, desc:"Refresco"},
+  {id:"b4", name:"Coca Cola Zero", price:30, desc:"Refresco sin azúcar"},
+  {id:"b5", name:"Peñafiel Manzana", price:30, desc:"Refresco de sabor"},
+  {id:"b6", name:"Peñafiel Fresa", price:30, desc:"Refresco de sabor"},
+  {id:"b7", name:"Peñafiel Agua Mineral", price:30, desc:"Agua mineral preparada/sola"},
+  {id:"b8", name:"Orange Crush", price:30, desc:"Refresco sabor naranja"}
+];
+
 const state = {};
 tacos.forEach(t => {
   state[t.id] = {
@@ -193,7 +213,12 @@ tacos.forEach(t => {
   };
 });
 
+bebidas.forEach(b => {
+  state[b.id] = { qty: 0 };
+});
+
 const menuEl = document.getElementById('menu');
+const bebidasMenuEl = document.getElementById('bebidas-menu');
 const fmt = n => '$' + n.toLocaleString('es-MX');
 
 function render(){
@@ -246,12 +271,33 @@ function render(){
       </div>
     `;
   }).join('');
+
+  bebidasMenuEl.innerHTML = bebidas.map(b => {
+    const st = state[b.id];
+    return `
+      <div class="taco" id="taco-card-${b.id}">
+        <div class="taco-main">
+          <div class="taco-info">
+            <h2>${b.name}</h2>
+            <p>${b.desc}</p>
+            <span class="price">${fmt(b.price)}</span>
+          </div>
+          <div class="stepper">
+            <button aria-label="Quitar" data-id="${b.id}" data-action="minus">–</button>
+            <span class="qty-count" id="qty-${b.id}">${st.qty}</span>
+            <button aria-label="Agregar" data-id="${b.id}" data-action="plus">+</button>
+          </div>
+        </div>
+      </div>
+    `;
+  }).join('');
 }
 
 render();
 
 function updateSummary(){
   let count = 0, total = 0;
+  
   tacos.forEach(t => {
     const st = state[t.id];
     count += st.qty;
@@ -259,7 +305,13 @@ function updateSummary(){
     total += st.qty * price;
   });
 
-  document.getElementById('itemsLabel').textContent = count === 1 ? '1 taco' : `${count} tacos`;
+  bebidas.forEach(b => {
+    const st = state[b.id];
+    count += st.qty;
+    total += st.qty * b.price;
+  });
+
+  document.getElementById('itemsLabel').textContent = count === 1 ? '1 producto' : `${count} productos`;
   document.getElementById('totalLabel').textContent = fmt(total);
 
   const nombre = document.getElementById('nombre').value.trim();
@@ -267,18 +319,21 @@ function updateSummary(){
   const hint = document.getElementById('hintText');
   const ready = count > 0 && nombre.length > 0;
   btn.disabled = !ready;
-  hint.textContent = ready ? 'Todo listo, te abrimos WhatsApp' : 'Agrega al menos un taco y escribe tu nombre';
+  hint.textContent = ready ? 'Todo listo, te abrimos WhatsApp' : 'Agrega al menos un producto y escribe tu nombre';
 }
 
-menuEl.addEventListener('click', e => {
+function handleStepperClick(e) {
   const btn = e.target.closest('button[data-id]');
   if(!btn) return;
-  const id = Number(btn.dataset.id);
+  const id = btn.dataset.id;
   if(btn.dataset.action === 'plus') state[id].qty++;
   else state[id].qty = Math.max(0, state[id].qty - 1);
   document.getElementById(`qty-${id}`).textContent = state[id].qty;
   updateSummary();
-});
+}
+
+menuEl.addEventListener('click', handleStepperClick);
+bebidasMenuEl.addEventListener('click', handleStepperClick);
 
 menuEl.addEventListener('change', e => {
   const target = e.target;
@@ -307,7 +362,7 @@ document.getElementById('orderBtn').addEventListener('click', () => {
   const nombre = document.getElementById('nombre').value.trim();
   let total = 0;
 
-  const lineas = tacos.filter(t => state[t.id].qty > 0).map(t => {
+  const lineasTacos = tacos.filter(t => state[t.id].qty > 0).map(t => {
     const st = state[t.id];
     const itemPrice = st.isCombo ? COMBO_PRICE : BASE_PRICE;
     const subtotal = itemPrice * st.qty;
@@ -327,7 +382,22 @@ document.getElementById('orderBtn').addEventListener('click', () => {
     return `• ${st.qty} ${tacoLabel} de ${guisadoTexto}${compTexto} - ${fmt(subtotal)}`;
   });
 
-  const mensaje = `*Pedido de:* ${nombre}\n\n*Detalle del pedido:*\n${lineas.join('\n')}\n\n*Total a pagar:* ${fmt(total)}`;
+  const lineasBebidas = bebidas.filter(b => state[b.id].qty > 0).map(b => {
+    const st = state[b.id];
+    const subtotal = b.price * st.qty;
+    total += subtotal;
+    return `• ${st.qty}x ${b.name} - ${fmt(subtotal)}`;
+  });
+
+  let mensaje = `*Pedido de:* ${nombre}\n\n*Detalle del pedido:*\n`;
+  if(lineasTacos.length > 0) {
+    mensaje += lineasTacos.join('\n') + '\n';
+  }
+  if(lineasBebidas.length > 0) {
+    mensaje += lineasBebidas.join('\n') + '\n';
+  }
+  mensaje += `\n*Total a pagar:* ${fmt(total)}`;
+
   window.open(`https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(mensaje)}`, '_blank');
 });
 
